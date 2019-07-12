@@ -1,39 +1,18 @@
 // Modules
-const {app, BrowserWindow} = require('electron')
+const {app,ipcMain} = require('electron')
 
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
-let mainWindow
+const mainWindow = require('./mainWindow.js')
+const readItem = require('./readItem')
 
-// Create a new BrowserWindow when `app` is ready
-function createWindow () {
+ipcMain.on('new-item', (e, itemURL) => {
+    readItem( itemURL, (item) => {
+      e.sender.send('new-item-success', item)
+    })
+})
 
-  mainWindow = new BrowserWindow({
-    width: 1000, height: 800,
-    webPreferences: { nodeIntegration: true }
-  })
 
-  // Load index.html into the new BrowserWindow
-  mainWindow.loadFile('index.html')
-
-  // Open DevTools - Remove for PRODUCTION!
-  mainWindow.webContents.openDevTools();
-
-  // Listen for window being closed
-  mainWindow.on('closed',  () => {
-    mainWindow = null
-  })
-}
-
-// Electron `app` is ready
 app.on('ready', () => {
-
-  console.log(app.getPath('desktop'))
-  console.log(app.getPath('music'))
-  console.log(app.getPath('temp'))
-  console.log(app.getPath('userData'))
-
-  createWindow()
+  mainWindow.createWindow()
 })
 
 // Quit when all windows are closed - (Not macOS - Darwin)
@@ -43,5 +22,5 @@ app.on('window-all-closed', () => {
 
 // When app icon is clicked and app is running, (macOS) recreate the BrowserWindow
 app.on('activate', () => {
-  if (mainWindow === null) createWindow()
+  if (mainWindow === null) mainWindow.createWindow()
 })
